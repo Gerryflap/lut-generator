@@ -34,7 +34,7 @@ pub fn generate_identity_lut() -> Lut3D {
 
                 index = i * 3 + j * 3 * HALD_CUBE_SIZE + k * 3 * HALD_CUBE_SIZE * HALD_CUBE_SIZE;
 
-                lut_map[index + 0] = r as u16;
+                lut_map[index] = r as u16;
                 lut_map[index + 1] = g as u16;
                 lut_map[index + 2] = b as u16;
             }
@@ -42,7 +42,7 @@ pub fn generate_identity_lut() -> Lut3D {
     }
 
     Lut3D {
-        lut_map: lut_map
+        lut_map
     }
 }
 
