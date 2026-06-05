@@ -1,22 +1,22 @@
 
-
-// Hald 32
-
 pub const HALD_LVL: usize = 16;
 pub const HALD_CUBE_SIZE: usize = HALD_LVL * HALD_LVL;
 pub const HALD_IMAGE_SIZE: usize = HALD_LVL * HALD_LVL * HALD_LVL;
 
 pub const HALD_ARRAY_SIZE: usize = HALD_IMAGE_SIZE * HALD_IMAGE_SIZE * 3;
 
+pub const MAX_VALUE: u16 = 65535;
+pub const MAX_VALUE_F: f64 = 65535.0;
+
 pub struct Lut3D {
-    pub(crate) lut_map: Vec<u8>
+    pub(crate) lut_map: Vec<u16>
 }
 
 ///
 /// Generates an Identity Lut3D
 pub fn generate_identity_lut() -> Lut3D {
     println!("Allocating...");
-    let mut lut_map: Vec<u8> = vec![0u8; HALD_ARRAY_SIZE];
+    let mut lut_map: Vec<u16> = vec![0u16; HALD_ARRAY_SIZE];
     println!("Allocated...");
 
 
@@ -28,15 +28,15 @@ pub fn generate_identity_lut() -> Lut3D {
     for i in 0..HALD_CUBE_SIZE {
         for j in 0..HALD_CUBE_SIZE {
             for k in 0..HALD_CUBE_SIZE {
-                r = (i as f64 / (HALD_CUBE_SIZE - 1) as f64) * 255.0;
-                g = (j as f64 / (HALD_CUBE_SIZE - 1) as f64) * 255.0;
-                b = (k as f64 / (HALD_CUBE_SIZE - 1) as f64) * 255.0;
+                r = (i as f64 / (HALD_CUBE_SIZE - 1) as f64) * MAX_VALUE_F;
+                g = (j as f64 / (HALD_CUBE_SIZE - 1) as f64) * MAX_VALUE_F;
+                b = (k as f64 / (HALD_CUBE_SIZE - 1) as f64) * MAX_VALUE_F;
 
                 index = i * 3 + j * 3 * HALD_CUBE_SIZE + k * 3 * HALD_CUBE_SIZE * HALD_CUBE_SIZE;
 
-                lut_map[index + 0] = r as u8;
-                lut_map[index + 1] = g as u8;
-                lut_map[index + 2] = b as u8;
+                lut_map[index + 0] = r as u16;
+                lut_map[index + 1] = g as u16;
+                lut_map[index + 2] = b as u16;
             }
         }
     }
