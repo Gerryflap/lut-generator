@@ -1,5 +1,5 @@
 use crate::definitions::{generate_identity_lut, Lut3D};
-use crate::output::write_lut;
+use crate::output::{write_lut};
 
 pub mod definitions;
 mod output;

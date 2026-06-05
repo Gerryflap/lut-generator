@@ -2,20 +2,21 @@
 
 // Hald 32
 
-pub const HALD_LVL: usize = 8;
+pub const HALD_LVL: usize = 16;
 pub const HALD_CUBE_SIZE: usize = HALD_LVL * HALD_LVL;
 pub const HALD_IMAGE_SIZE: usize = HALD_LVL * HALD_LVL * HALD_LVL;
 
 pub const HALD_ARRAY_SIZE: usize = HALD_IMAGE_SIZE * HALD_IMAGE_SIZE * 3;
 
 pub struct Lut3D {
-    pub(crate) lut_map: Box<[u8; HALD_ARRAY_SIZE]>
+    pub(crate) lut_map: Vec<u8>
 }
 
-
+///
+/// Generates an Identity Lut3D
 pub fn generate_identity_lut() -> Lut3D {
     println!("Allocating...");
-    let mut lut_map: Box<[u8; HALD_ARRAY_SIZE]> = Box::new([0; HALD_ARRAY_SIZE]);
+    let mut lut_map: Vec<u8> = vec![0u8; HALD_ARRAY_SIZE];
     println!("Allocated...");
 
 
