@@ -11,12 +11,20 @@ fn main() {
     let mut lut: Lut3D = generate_identity_lut();
 
     println!("Applying hd curve per-channel");
+    // let curve = HdCurveSettings{
+    //     contrast: 4.0,
+    //     exposure_bias: 0.0,
+    //     toe: 1.0,
+    //     shoulder: 0.5,
+    //     pivot: Some(1.0),
+    // };
+
     let curve = HdCurveSettings{
-        contrast: 3.0,
-        exposure_bias: 0.0,
-        toe: 1.0,
-        shoulder: 0.7,
-        ..Default::default()
+        contrast: 4.38,
+        exposure_bias: 0.38,
+        toe: 3.0,
+        shoulder: 0.72,
+        pivot: Some(1.0),
     };
 
     lut = lut.apply_operation(|x| curve.apply(x));

@@ -4,8 +4,23 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    #! format: off
+    return quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+    #! format: on
+end
+
 # ╔═╡ 800ee590-6188-11f1-a96e-adf4c0de4858
-using Plots
+begin
+	using Plots
+	using PlutoUI
+end
 
 # ╔═╡ 061ba12c-ce74-4680-bde0-3f1b7f591be3
 begin
@@ -14,7 +29,7 @@ begin
 		return 1.0 / (1.0 + exp(-x * 5))
 	end
 
-	function film_curve_1(x, contrast=4.0, exposure_bias=0.0, toe=1.0, shoulder=0.3)
+	function film_curve_1(x, contrast, exposure_bias, toe, shoulder)
 		x = x * 2.0 - 1.0
 		s = 1.0 / (1.0 + exp(-contrast * (x + exposure_bias)))
 		y = s ^ toe
@@ -27,22 +42,56 @@ begin
 		py = film_curve_1(pivot, contrast, exposure_bias, toe, shoulder)
 		y = film_curve_1(x, contrast, exposure_bias, toe, shoulder)
 		y = y * (pivot / py)
+		y = min(1.0, y)
 		return y
 	end
-	
-	x = 0:0.001:1
-	# y = x.^2
-	y = fc_2.(x)
-	plot(x, y)
 end
+
+# ╔═╡ 5c8837ba-2c1b-4b37-a1fe-df95ccd0a38b
+begin
+	md"""
+	Contrast: $(@bind contrast Slider(0:0.01:15, default=3.0))
+	
+	Exposure: $(@bind exposure_bias Slider(-1:0.01:1, default=0.0))
+	
+	Toe: $(@bind toe Slider(0:0.01:3, default=1.0))
+	
+	Shoulder: $(@bind shoulder Slider(0:0.01:3, default=1.0))
+	
+	Pivot: $(@bind pivot Slider(0:0.01:1, default=0.5))
+	"""
+end
+
+# ╔═╡ f4a40461-6b3a-435c-a9c6-3771657d7bcc
+begin
+		x = 0:0.001:1
+		# y = x.^2
+		y = fc_2.(x, contrast, exposure_bias, toe, shoulder, pivot)
+		plot(x, y)
+end
+
+# ╔═╡ 4c884a68-b3a6-4278-9cc0-0df3622b1fae
+md"""
+Contrast: $(round(contrast; digits=2))
+
+Exposure: $(exposure_bias)
+
+Toe: $(toe)
+
+Shoulder: $(shoulder)
+
+Pivot: $(pivot)
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 Plots = "~1.41.6"
+PlutoUI = "~0.7.83"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -51,7 +100,12 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "e181c0827eea669267c3ae2576311d8abe35ef38"
+project_hash = "5c3b2fc563fc7bfad87a6de7ca75cc1331fb6632"
+
+[[deps.AbstractPlutoDingetjes]]
+git-tree-sha1 = "6c3913f4e9bdf6ba3c08041a446fb1332716cbc2"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.4.0"
 
 [[deps.AliasTables]]
 deps = ["PtrArrays", "Random"]
@@ -310,6 +364,24 @@ git-tree-sha1 = "f923f9a774fcf3f5cb761bfa43aeadd689714813"
 uuid = "2e76f6c2-a576-52d4-95c1-20adfe4de566"
 version = "8.5.1+0"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "179267cfa5e712760cd43dcae385d7ea90cc25a4"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.5"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "d1a86724f81bcd184a38fd284ce183ec067d71a0"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "1.0.0"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "0ee181ec08df7d7c911901ea38baf16f755114dc"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "1.0.0"
+
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
@@ -492,6 +564,11 @@ git-tree-sha1 = "f00544d95982ea270145636c181ceda21c4e2575"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.2.0"
 
+[[deps.MIMEs]]
+git-tree-sha1 = "c64d943587f7187e751162b3b84445bbbd79f691"
+uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
+version = "1.1.0"
+
 [[deps.MacroTools]]
 git-tree-sha1 = "1e0228a030642014fe5cfe68c2c0a818f9e3f522"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
@@ -644,6 +721,12 @@ version = "1.41.6"
     IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
     ImageInTerminal = "d8c32880-2388-543b-8c61-d9f865259254"
     Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Downloads", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
+git-tree-sha1 = "e189d0623e7ce9c37389bac17e80aac3b0302e75"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.83"
 
 [[deps.PrecompileTools]]
 deps = ["Preferences"]
@@ -854,6 +937,11 @@ version = "1.11.0"
 git-tree-sha1 = "0c45878dcfdcfa8480052b6ab162cdd138781742"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.11.3"
+
+[[deps.Tricks]]
+git-tree-sha1 = "311349fd1c93a31f783f977a71e8b062a57d4101"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.13"
 
 [[deps.URIs]]
 git-tree-sha1 = "bef26fb046d031353ef97a82e3fdb6afe7f21b1a"
@@ -1168,5 +1256,8 @@ version = "1.13.0+0"
 # ╔═╡ Cell order:
 # ╠═800ee590-6188-11f1-a96e-adf4c0de4858
 # ╠═061ba12c-ce74-4680-bde0-3f1b7f591be3
+# ╠═5c8837ba-2c1b-4b37-a1fe-df95ccd0a38b
+# ╟─f4a40461-6b3a-435c-a9c6-3771657d7bcc
+# ╠═4c884a68-b3a6-4278-9cc0-0df3622b1fae
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

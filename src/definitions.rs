@@ -4,8 +4,8 @@ pub const HALD_IMAGE_SIZE: usize = HALD_LVL * HALD_LVL * HALD_LVL;
 
 pub const HALD_ARRAY_SIZE: usize = HALD_IMAGE_SIZE * HALD_IMAGE_SIZE * 3;
 
-pub const MAX_VALUE: u16 = 65535;
-pub const MAX_VALUE_F: f64 = 65535.0;
+pub const MAX_VALUE: u16 = u16::MAX;
+pub const MAX_VALUE_F: f64 = MAX_VALUE as f64;
 
 pub struct Lut3D {
     pub(crate) lut_map: Vec<u16>
