@@ -174,21 +174,30 @@ begin
 	end
 
 	function compute_response_between(h_min, h_max, hue, purity)
-			
+		# TODO: special case!!!!
+		r_min = response_at(h_min, hue, purity)
+		r_max = response_at(h_max, hue, purity)
+		area = r_min * (h_max - h_min) + (r_max * r_min) * (h_max - h_min)
+		return area
 	end
 
-	function compute_activation(c::Cell, angle, purity)
+	function compute_activations(c::Cell, angle, purity)
+		xs = []
+		out = []
 		stepsize = (c.h_max - c.h_min) / length(c.responsiveness)
 		for b in 1:length(c.responsiveness)
 			r = c.responsiveness[b]
 			hmin = c.h_min + (b-1) * stepsize
 			hmax = c.h_min + (b) * stepsize
-			println(hmin, " ", hmax)
+			push!(xs, hmin)
+			push!(out, compute_response_between(hmin, hmax, angle, purity))
 		end
+		return xs, out
 	end
 
-	cell = Cell(100, 120, [1.0, 0.3])
-	compute_activation(cell, 110, 0.5)
+	cell = Cell(0, 360, 0:0.01:1)
+	xs1, ys1 = compute_activations(cell, 110, 1.0)
+	plot(xs1, ys1, ylims=(0,nothing))
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
