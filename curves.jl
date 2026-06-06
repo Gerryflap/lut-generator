@@ -150,7 +150,7 @@ begin
 			base = 0
 		end
 		rheight = height - base
-		d = abs((hue - h_center + 360) % 360 - 180)
+		d = abs((hue - h_center + 180) % 360 - 180)
 		if d < width
 			x = d/width
 		else
@@ -173,12 +173,21 @@ begin
 		responsiveness:: Array{Float64}
 	end
 
-	function compute_response_between(h_min, h_max, hue, purity)
-		# TODO: special case!!!!
+	function _compute_response_between(h_min, h_max, hue, purity)
+		# nulpunt meenemen!
 		r_min = response_at(h_min, hue, purity)
 		r_max = response_at(h_max, hue, purity)
-		area = r_min * (h_max - h_min) + (r_max * r_min) * (h_max - h_min)
+		area = r_min * abs(h_max - h_min) + 0.5 * (r_max - r_min) * abs(h_max - h_min)
 		return area
+	end
+
+	function compute_response_between(h_min, h_max, hue, purity)
+		if h_min < hue < h_max
+			out = _compute_response_between(h_min, hue, hue, purity)
+			out += _compute_response_between(hue, h_max, hue, purity)
+		else
+			out = _compute_response_between(h_min, h_max, hue, purity)
+		end
 	end
 
 	function compute_activations(c::Cell, angle, purity)
@@ -195,8 +204,9 @@ begin
 		return xs, out
 	end
 
-	cell = Cell(0, 360, 0:0.01:1)
-	xs1, ys1 = compute_activations(cell, 110, 1.0)
+	cell = Cell(0, 360, 0:0.1:1)
+	xs1, ys1 = compute_activations(cell, 109, 1.0)
+	println(ys1)
 	plot(xs1, ys1, ylims=(0,nothing))
 end
 
