@@ -1,5 +1,5 @@
 use crate::definitions::{generate_identity_lut, Lut3D};
-use crate::operations::{simple_sigmoid, HdCurveSettings};
+use crate::operations::tone_mapping::{simple_sigmoid, HdCurveSettings};
 use crate::output::{write_lut};
 
 pub mod definitions;
