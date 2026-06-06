@@ -137,7 +137,7 @@ end
 begin
 	function response_at(hue, h_center, purity)		
 		if purity > 0.5
-			width = 1 + 359 * 2 * (1.0 - purity)
+			width = 1 + 359 * 2 * (1.0 - purity) ^ 2
 		else
 			width = 360
 		end
@@ -163,34 +163,6 @@ begin
 	xs = -180:0.1:180
 	ys = response_at.(xs, angle, purity)
 	plot(xs, ys, ylims=(0, 1))
-end
-
-# ╔═╡ a7376399-8504-4870-bd59-c59e6f28971c
-begin
-		if purity > 0.5
-			width = 1 + 359 * 2 * (1.0 - purity)
-		else
-			width = 360
-		end
-	
-		height = 1.0/width
-	
-		if purity < 0.5
-			base = ((0.5 - purity) / 0.5) * height
-		else
-			base = 0
-		end
-		rheight = height - base
-		
-		md"""
-Width: $width
-	
-Height: $height
-	
-Base: $base
-	
-rheight: $rheight
-		"""
 end
 
 # ╔═╡ a49a4768-6022-4487-94e6-fcc41ba23739
@@ -1399,7 +1371,6 @@ version = "1.13.0+0"
 # ╟─55f4cde2-7041-46f7-beb8-cc0e5cd984fa
 # ╟─b33d28e5-718c-434d-ac73-cec3d2e1b742
 # ╠═12f492c1-b93d-4cbb-8bce-06dcf4b5c1c6
-# ╠═a7376399-8504-4870-bd59-c59e6f28971c
 # ╠═a49a4768-6022-4487-94e6-fcc41ba23739
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
