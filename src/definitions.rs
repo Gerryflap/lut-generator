@@ -1,4 +1,3 @@
-
 pub const HALD_LVL: usize = 16;
 pub const HALD_CUBE_SIZE: usize = HALD_LVL * HALD_LVL;
 pub const HALD_IMAGE_SIZE: usize = HALD_LVL * HALD_LVL * HALD_LVL;
@@ -10,6 +9,19 @@ pub const MAX_VALUE_F: f64 = 65535.0;
 
 pub struct Lut3D {
     pub(crate) lut_map: Vec<u16>
+}
+
+impl Lut3D {
+    pub fn apply_operation<F>(&self, operation: F) -> Self
+    where
+        F: Fn(u16) -> u16,
+    {
+        let lut_map_out: Vec<u16> = self.lut_map.iter().copied().map(operation).collect();
+
+        Lut3D{
+            lut_map: lut_map_out,
+        }
+    }
 }
 
 ///
@@ -45,25 +57,3 @@ pub fn generate_identity_lut() -> Lut3D {
         lut_map
     }
 }
-
-/*
-Example:
-
-```C
-    cube_size = level * level;
-    image_size = level * level * level;
-    data = p = malloc((sizeof *data) * image_size * image_size * 3);
-    for(blue = 0; blue < cube_size; blue++)
-    {
-         for(green = 0; green < cube_size; green++)
-         {
-             for(red = 0; red < cube_size; red++)
-             {
-                 *p++ = (float)red / (float)(cube_size - 1);
-                 *p++ = (float)green / (float)(cube_size - 1);
-                 *p++ = (float)blue / (float)(cube_size - 1);
-             }
-         }
-    }
-```
-*/
