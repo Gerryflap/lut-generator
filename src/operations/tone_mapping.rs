@@ -1,4 +1,4 @@
-use crate::definitions::{MAX_VALUE_F};
+use crate::definitions::{MAX_VALUE, MAX_VALUE_F};
 
 
 pub fn simple_sigmoid(v: u16, contrast: f64) -> u16 {
@@ -7,6 +7,15 @@ pub fn simple_sigmoid(v: u16, contrast: f64) -> u16 {
 
     (of * MAX_VALUE_F) as u16
 }
+
+pub fn to_float(v: u16) -> f64 {
+    v as f64 / MAX_VALUE_F
+}
+
+pub fn to_uint_and_clip(v: f64) -> u16 {
+    (v.clamp(0.0, 1.0) * MAX_VALUE_F).round() as u16
+}
+
 
 
 pub struct HdCurveSettings {
@@ -40,20 +49,19 @@ impl Default for HdCurveSettings {
 }
 
 impl HdCurveSettings {
-    pub fn apply(&self, v: u16) -> u16 {
+    pub fn apply(&self, v: f64) -> f64 {
         hd_curve(v, self)
     }
+
 }
 
-pub fn hd_curve(v: u16, settings: &HdCurveSettings) -> u16 {
-    let x: f64 = v as f64 / MAX_VALUE_F;
-    let y: f64 = hd_curve_internal(x, settings);
+pub fn hd_curve(v: f64, settings: &HdCurveSettings) -> f64 {
+    let y: f64 = hd_curve_internal(v, settings);
     let y_corr = match settings.pivot {
         None => {y}
         Some(p) => {y * (p / hd_curve_internal(p, settings))}
     };
-    // Clip values
-    MAX_VALUE_F.min(y_corr * MAX_VALUE_F) as u16
+    y_corr
 }
 
 fn hd_curve_internal(v: f64, settings: &HdCurveSettings) -> f64 {

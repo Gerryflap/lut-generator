@@ -47,6 +47,26 @@ begin
 	end
 end
 
+# ╔═╡ 87173961-e9e2-469a-a4e6-261530e5a03e
+begin
+	function normalize_angle_degrees(angle)
+		return (angle + 360 + 180) % 360 - 180
+	end
+
+	md"""
+Normed:
+
+10 -> $(normalize_angle_degrees(10))
+
+-170 -> $(normalize_angle_degrees(-170))
+
+-250 -> $(normalize_angle_degrees(-250))
+
+300 -> $(normalize_angle_degrees(300))
+	"""
+	
+end
+
 # ╔═╡ 5c8837ba-2c1b-4b37-a1fe-df95ccd0a38b
 begin
 	md"""
@@ -135,12 +155,17 @@ end
 
 # ╔═╡ 12f492c1-b93d-4cbb-8bce-06dcf4b5c1c6
 begin
-	function response_at(hue, h_center, purity)		
+	function purity_width(purity)
 		if purity > 0.5
 			width = 1 + 359 * 2 * (1.0 - purity) ^ 2
 		else
 			width = 360
 		end
+		return width
+	end
+	
+	function response_at(hue, h_center, purity)		
+		width = purity_width(purity)
 
 		height = 1.0/width
 
@@ -150,7 +175,7 @@ begin
 			base = 0
 		end
 		rheight = height - base
-		d = abs((hue - h_center + 180) % 360 - 180)
+		d = abs(normalize_angle_degrees(hue - h_center))
 		if d < width
 			x = d/width
 		else
@@ -158,6 +183,7 @@ begin
 		end
 		x = 1.0 - x
 		y = rheight * x + base
+		return y
 	end
 
 	xs = -180:0.1:180
@@ -173,16 +199,49 @@ begin
 		responsiveness:: Array{Float64}
 	end
 
+	function _compute_slope_width(h_min, h_max, hue, purity, width)
+		pwidth = purity_width(purity)
+
+		hn = normalize_angle_degrees(hue - h_min)
+		hub_n = normalize_angle_degrees(hue + pwidth - h_min)
+		hlb_n = normalize_angle_degrees(hue - pwidth - h_min)
+		hnm = normalize_angle_degrees(h_max - h_min)
+
+		if 0 < hub_n < hnm
+			# Right point of the purity activation triangle is within bound
+			swidth = hub_n
+		elseif 0 < hlb_n < hnm
+			# Left point of the triangle is in our bounds
+			swidth = hnm - hlb_n
+		else 
+			swidth = width
+		end
+	end
+
 	function _compute_response_between(h_min, h_max, hue, purity)
-		# nulpunt meenemen!
 		r_min = response_at(h_min, hue, purity)
 		r_max = response_at(h_max, hue, purity)
-		area = r_min * abs(h_max - h_min) + 0.5 * (r_max - r_min) * abs(h_max - h_min)
+
+		if r_min > r_max
+			r_min, r_max = r_max, r_min
+		end
+
+		width = normalize_angle_degrees(h_max - h_min)
+		swidth = _compute_slope_width(h_min, h_max, hue, purity, width)
+		if swidth != width
+			println("Slope width != width: ", swidth, ", ", width)
+			area_static = r_min * abs(h_max - h_min)
+			area_slope = 0.5 * abs(r_max - r_min) * swidth
+			println("Areas: ", area_static, ", ", area_slope)
+		end
+		area = r_min * width + 0.5 * abs(r_max - r_min) * swidth
 		return area
 	end
 
 	function compute_response_between(h_min, h_max, hue, purity)
-		if h_min < hue < h_max
+		hn = normalize_angle_degrees(hue - h_min)
+		hmn = normalize_angle_degrees(h_max - h_min)
+		if 0 < hn < hmn
 			out = _compute_response_between(h_min, hue, hue, purity)
 			out += _compute_response_between(hue, h_max, hue, purity)
 		else
@@ -204,10 +263,24 @@ begin
 		return xs, out
 	end
 
-	cell = Cell(0, 360, 0:0.1:1)
-	xs1, ys1 = compute_activations(cell, 109, 1.0)
-	println(ys1)
-	plot(xs1, ys1, ylims=(0,nothing))
+	function compute_summed_activation(c, angle, purity)
+		stepsize = (c.h_max - c.h_min) / length(c.responsiveness)
+		activation = 0.0
+		for b in 1:length(c.responsiveness)
+			r = c.responsiveness[b]
+			hmin = c.h_min + (b-1) * stepsize
+			hmax = c.h_min + (b) * stepsize
+			activation += compute_response_between(hmin, hmax, angle, purity)
+		end
+		return activation
+	end
+
+	# https://photo.stackexchange.com/questions/60707/how-to-read-a-film-color-response-chart
+
+	cell = Cell(36, 72, 0:0.001:1)
+	xs1, ys1 = compute_activations(cell, 40, 0.9999)
+	println("Total area: ", sum(ys1),", ", compute_summed_activation(cell, 40, 0.9999))
+	plot(xs1, ys1)
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1383,12 +1456,13 @@ version = "1.13.0+0"
 # ╔═╡ Cell order:
 # ╠═800ee590-6188-11f1-a96e-adf4c0de4858
 # ╠═061ba12c-ce74-4680-bde0-3f1b7f591be3
+# ╠═87173961-e9e2-469a-a4e6-261530e5a03e
 # ╠═5c8837ba-2c1b-4b37-a1fe-df95ccd0a38b
 # ╟─f4a40461-6b3a-435c-a9c6-3771657d7bcc
 # ╠═4c884a68-b3a6-4278-9cc0-0df3622b1fae
 # ╠═ade92bee-fd37-498f-b8fc-3c4b7cc29013
-# ╟─55f4cde2-7041-46f7-beb8-cc0e5cd984fa
-# ╟─b33d28e5-718c-434d-ac73-cec3d2e1b742
+# ╠═55f4cde2-7041-46f7-beb8-cc0e5cd984fa
+# ╠═b33d28e5-718c-434d-ac73-cec3d2e1b742
 # ╠═12f492c1-b93d-4cbb-8bce-06dcf4b5c1c6
 # ╠═a49a4768-6022-4487-94e6-fcc41ba23739
 # ╟─00000000-0000-0000-0000-000000000001

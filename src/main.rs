@@ -1,4 +1,5 @@
 use crate::definitions::{generate_identity_lut, Lut3D};
+use crate::operations::colour::{apply_to_lut, SensitiveLayer};
 use crate::operations::tone_mapping::{simple_sigmoid, HdCurveSettings};
 use crate::output::{write_lut};
 
@@ -10,7 +11,7 @@ fn main() {
     println!("Generating LUT");
     let mut lut: Lut3D = generate_identity_lut();
 
-    println!("Applying hd curve per-channel");
+    println!("Applying layers and curves");
     // let curve = HdCurveSettings{
     //     contrast: 4.0,
     //     exposure_bias: 0.0,
@@ -27,7 +28,49 @@ fn main() {
         pivot: Some(1.0),
     };
 
-    lut = lut.apply_operation(|x| curve.apply(x));
+    let mut layers: Vec<SensitiveLayer> = Vec::new();
+
+    layers.push(SensitiveLayer{
+            hue_min: -180.0,
+            hue_max: 180.0,
+            sensitivity: vec![1.0],
+            dye_colour: [1.0, 1.0, 1.0],
+            density_multiplier: 1.0,
+            response_curve: &curve,
+        });
+
+
+    // // Red
+    // layers.push(SensitiveLayer{
+    //     hue_min: -120.0,
+    //     hue_max: 120.0,
+    //     sensitivity: vec![1.0],
+    //     dye_colour: [1.0, 0.0, 0.0],
+    //     density_multiplier: 1.0,
+    //     response_curve: &curve,
+    // });
+    //
+    // // Green
+    // layers.push(SensitiveLayer{
+    //     hue_min: 0.0,
+    //     hue_max: 240.0,
+    //     sensitivity: vec![1.0],
+    //     dye_colour: [0.0, 1.0, 0.0],
+    //     density_multiplier: 1.0,
+    //     response_curve: &curve,
+    // });
+    //
+    // // Blue
+    // layers.push(SensitiveLayer{
+    //     hue_min: 120.0,
+    //     hue_max: 360.0,
+    //     sensitivity: vec![1.0],
+    //     dye_colour: [0.0, 0.0, 1.0],
+    //     density_multiplier: 1.0,
+    //     response_curve: &curve,
+    // });
+
+    lut = apply_to_lut(&layers, lut);
 
     println!("Writing LUT");
     write_lut("/run/media/gerben/LinuxSpeedyData/haldclut_film_sim/HaldCLUT/test/lut.png", lut);

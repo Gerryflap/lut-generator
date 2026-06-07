@@ -1,4 +1,4 @@
-pub const HALD_LVL: usize = 16;
+pub const HALD_LVL: usize = 8;
 pub const HALD_CUBE_SIZE: usize = HALD_LVL * HALD_LVL;
 pub const HALD_IMAGE_SIZE: usize = HALD_LVL * HALD_LVL * HALD_LVL;
 
@@ -22,6 +22,28 @@ impl Lut3D {
             lut_map: lut_map_out,
         }
     }
+
+    pub fn apply_rgb_operation<F>(&self, operation: F) -> Self
+    where
+        F: Fn(u16, u16, u16) -> (u16, u16, u16),
+    {
+        let mut lut_map_out: Vec<u16> = vec![0u16; HALD_ARRAY_SIZE];
+
+        for i in (0..HALD_ARRAY_SIZE).step_by(3) {
+            let r = self.lut_map[i];
+            let g = self.lut_map[i + 1];
+            let b = self.lut_map[i + 2];
+            let (ro, go, bo) = operation(r, g, b);
+            lut_map_out[i + 0] = ro;
+            lut_map_out[i + 1] = go;
+            lut_map_out[i + 2] = bo;
+        }
+
+        Lut3D{
+            lut_map: lut_map_out,
+        }
+    }
+
 }
 
 ///
