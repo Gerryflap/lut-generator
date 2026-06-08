@@ -135,7 +135,8 @@ fn base_height_at_purity(purity: f64, height: f64) -> f64 {
 
 fn response_at(hue: f64, value: f64, h_center: f64, purity: f64) -> f64 {
     let width = width_at_purity(purity);
-    let height = value / 360.0; // / width;
+    // let height = value / 360.0;
+    let height = value / width;
     // "base" height, height at the lowest point of the response curve
     let base = base_height_at_purity(purity, height);
     // Height of the slope above the base height

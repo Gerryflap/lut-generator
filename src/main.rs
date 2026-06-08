@@ -42,31 +42,31 @@ fn main() {
 
     // Red
     layers.push(SensitiveLayer{
-        hue_min: -120.0,
-        hue_max: 120.0,
-        sensitivity: vec![0.1, 0.4, 0.7, 0.9, 1.0, 0.9, 0.7, 0.4, 0.1],
+        hue_min: -80.0,
+        hue_max: 80.0,
+        sensitivity: vec![0.3, 0.7, 1.0, 1.0, 1.0, 1.0, 0.7, 0.3],
         output_colour: [1.0, 0.0, 0.0],
-        density_multiplier: 3.0,
+        density_multiplier: 1.0,
         response_curve: &curve,
     });
 
     // Green
     layers.push(SensitiveLayer{
-        hue_min: 0.0,
-        hue_max: 240.0,
-        sensitivity: vec![0.1, 0.4, 0.7, 0.9, 1.0, 0.9, 0.7, 0.4, 0.1],
+        hue_min: 40.0,
+        hue_max: 200.0,
+        sensitivity: vec![0.3, 0.7, 1.0, 1.0, 1.0, 1.0, 0.7, 0.3],
         output_colour: [0.0, 1.0, 0.0],
-        density_multiplier: 3.0,
+        density_multiplier: 1.0,
         response_curve: &curve,
     });
 
     // Blue
     layers.push(SensitiveLayer{
-        hue_min: -240.0,
-        hue_max: 0.0,
-        sensitivity: vec![0.1, 0.4, 0.7, 0.9, 1.0, 0.9, 0.7, 0.4, 0.1],
+        hue_min: 160.0,
+        hue_max: 320.0,
+        sensitivity: vec![0.3, 0.7, 1.0, 1.0, 1.0, 1.0, 0.7, 0.3],
         output_colour: [0.0, 0.0, 1.0],
-        density_multiplier: 3.0,
+        density_multiplier: 1.0,
         response_curve: &curve,
     });
 
