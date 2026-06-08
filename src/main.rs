@@ -21,7 +21,7 @@ fn main() {
     // };
 
     let curve = HdCurveSettings{
-        contrast: 4.38,
+        contrast: 2.38,
         exposure_bias: 0.38,
         toe: 3.0,
         shoulder: 0.72,
@@ -30,45 +30,45 @@ fn main() {
 
     let mut layers: Vec<SensitiveLayer> = Vec::new();
 
+    // layers.push(SensitiveLayer{
+    //         hue_min: 45.0,
+    //         hue_max: 195.0,
+    //         sensitivity: vec![1.0],
+    //         output_colour: [1.0, 1.0, 1.0],
+    //         density_multiplier: 1.0,
+    //         response_curve: &curve,
+    //     });
+
+
+    // Red
     layers.push(SensitiveLayer{
-            hue_min: -180.0,
-            hue_max: 180.0,
-            sensitivity: vec![1.0],
-            dye_colour: [1.0, 1.0, 1.0],
-            density_multiplier: 1.0,
-            response_curve: &curve,
-        });
+        hue_min: -120.0,
+        hue_max: 120.0,
+        sensitivity: vec![0.1, 0.4, 0.7, 0.9, 1.0, 0.9, 0.7, 0.4, 0.1],
+        output_colour: [1.0, 0.0, 0.0],
+        density_multiplier: 3.0,
+        response_curve: &curve,
+    });
 
+    // Green
+    layers.push(SensitiveLayer{
+        hue_min: 0.0,
+        hue_max: 240.0,
+        sensitivity: vec![0.1, 0.4, 0.7, 0.9, 1.0, 0.9, 0.7, 0.4, 0.1],
+        output_colour: [0.0, 1.0, 0.0],
+        density_multiplier: 3.0,
+        response_curve: &curve,
+    });
 
-    // // Red
-    // layers.push(SensitiveLayer{
-    //     hue_min: -120.0,
-    //     hue_max: 120.0,
-    //     sensitivity: vec![1.0],
-    //     dye_colour: [1.0, 0.0, 0.0],
-    //     density_multiplier: 1.0,
-    //     response_curve: &curve,
-    // });
-    //
-    // // Green
-    // layers.push(SensitiveLayer{
-    //     hue_min: 0.0,
-    //     hue_max: 240.0,
-    //     sensitivity: vec![1.0],
-    //     dye_colour: [0.0, 1.0, 0.0],
-    //     density_multiplier: 1.0,
-    //     response_curve: &curve,
-    // });
-    //
-    // // Blue
-    // layers.push(SensitiveLayer{
-    //     hue_min: 120.0,
-    //     hue_max: 360.0,
-    //     sensitivity: vec![1.0],
-    //     dye_colour: [0.0, 0.0, 1.0],
-    //     density_multiplier: 1.0,
-    //     response_curve: &curve,
-    // });
+    // Blue
+    layers.push(SensitiveLayer{
+        hue_min: -240.0,
+        hue_max: 0.0,
+        sensitivity: vec![0.1, 0.4, 0.7, 0.9, 1.0, 0.9, 0.7, 0.4, 0.1],
+        output_colour: [0.0, 0.0, 1.0],
+        density_multiplier: 3.0,
+        response_curve: &curve,
+    });
 
     lut = apply_to_lut(&layers, lut);
 

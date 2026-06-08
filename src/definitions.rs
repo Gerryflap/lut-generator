@@ -1,4 +1,4 @@
-pub const HALD_LVL: usize = 8;
+pub const HALD_LVL: usize = 12;
 pub const HALD_CUBE_SIZE: usize = HALD_LVL * HALD_LVL;
 pub const HALD_IMAGE_SIZE: usize = HALD_LVL * HALD_LVL * HALD_LVL;
 
@@ -77,5 +77,17 @@ pub fn generate_identity_lut() -> Lut3D {
 
     Lut3D {
         lut_map
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::definitions::generate_identity_lut;
+
+    #[test]
+    fn test_lut_apply_rgb() {
+        let lut_in = generate_identity_lut();
+        let lut_out = lut_in.apply_rgb_operation(|r, g, b| (r, g, b));
+        assert_eq!(lut_out.lut_map, lut_in.lut_map);
     }
 }
