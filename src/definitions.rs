@@ -8,15 +8,15 @@ pub const MAX_VALUE: u16 = u16::MAX;
 pub const MAX_VALUE_F: f64 = MAX_VALUE as f64;
 
 pub struct Lut3D {
-    pub(crate) lut_map: Vec<u16>
+    pub(crate) lut_map: Vec<f64>
 }
 
 impl Lut3D {
     pub fn apply_operation<F>(&self, operation: F) -> Self
     where
-        F: Fn(u16) -> u16,
+        F: Fn(f64) -> f64,
     {
-        let lut_map_out: Vec<u16> = self.lut_map.iter().copied().map(operation).collect();
+        let lut_map_out: Vec<f64> = self.lut_map.iter().copied().map(operation).collect();
 
         Lut3D{
             lut_map: lut_map_out,
@@ -25,9 +25,9 @@ impl Lut3D {
 
     pub fn apply_rgb_operation<F>(&self, operation: F) -> Self
     where
-        F: Fn(u16, u16, u16) -> (u16, u16, u16),
+        F: Fn(f64, f64, f64) -> (f64, f64, f64),
     {
-        let mut lut_map_out: Vec<u16> = vec![0u16; HALD_ARRAY_SIZE];
+        let mut lut_map_out: Vec<f64> = vec![0.0; HALD_ARRAY_SIZE];
 
         for i in (0..HALD_ARRAY_SIZE).step_by(3) {
             let r = self.lut_map[i];
@@ -50,7 +50,7 @@ impl Lut3D {
 /// Generates an Identity Lut3D
 pub fn generate_identity_lut() -> Lut3D {
     println!("Allocating...");
-    let mut lut_map: Vec<u16> = vec![0u16; HALD_ARRAY_SIZE];
+    let mut lut_map: Vec<f64> = vec![0.0; HALD_ARRAY_SIZE];
     println!("Allocated...");
 
 
@@ -62,15 +62,15 @@ pub fn generate_identity_lut() -> Lut3D {
     for i in 0..HALD_CUBE_SIZE {
         for j in 0..HALD_CUBE_SIZE {
             for k in 0..HALD_CUBE_SIZE {
-                r = (i as f64 / (HALD_CUBE_SIZE - 1) as f64) * MAX_VALUE_F;
-                g = (j as f64 / (HALD_CUBE_SIZE - 1) as f64) * MAX_VALUE_F;
-                b = (k as f64 / (HALD_CUBE_SIZE - 1) as f64) * MAX_VALUE_F;
+                r = i as f64 / (HALD_CUBE_SIZE - 1) as f64;
+                g = j as f64 / (HALD_CUBE_SIZE - 1) as f64;
+                b = k as f64 / (HALD_CUBE_SIZE - 1) as f64;
 
                 index = i * 3 + j * 3 * HALD_CUBE_SIZE + k * 3 * HALD_CUBE_SIZE * HALD_CUBE_SIZE;
 
-                lut_map[index] = r as u16;
-                lut_map[index + 1] = g as u16;
-                lut_map[index + 2] = b as u16;
+                lut_map[index] = r;
+                lut_map[index + 1] = g;
+                lut_map[index + 2] = b;
             }
         }
     }

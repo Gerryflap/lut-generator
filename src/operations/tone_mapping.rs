@@ -8,15 +8,6 @@ pub fn simple_sigmoid(v: u16, contrast: f64) -> u16 {
     (of * MAX_VALUE_F) as u16
 }
 
-pub fn to_float(v: u16) -> f64 {
-    v as f64 / MAX_VALUE_F
-}
-
-pub fn to_uint_and_clip(v: f64) -> u16 {
-    (v.clamp(0.0, 1.0) * MAX_VALUE_F).round() as u16
-}
-
-
 
 pub struct HdCurveSettings {
     // Controls the contrast, 3 is quite low, 6 is quite high

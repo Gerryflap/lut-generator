@@ -53,6 +53,10 @@ begin
 		return (angle + 360 + 180) % 360 - 180
 	end
 
+	function normalize_angle_degrees_360(angle)
+		return (angle + 360) % 360
+	end
+
 	md"""
 Normed:
 
@@ -63,6 +67,16 @@ Normed:
 -250 -> $(normalize_angle_degrees(-250))
 
 300 -> $(normalize_angle_degrees(300))
+
+	Normed (360):
+
+10 -> $(normalize_angle_degrees_360(10))
+
+-170 -> $(normalize_angle_degrees_360(-170))
+
+-250 -> $(normalize_angle_degrees_360(-250))
+
+300 -> $(normalize_angle_degrees_360(300))
 	"""
 	
 end
@@ -157,7 +171,7 @@ end
 begin
 	function purity_width(purity)
 		if purity > 0.5
-			width = 1 + 359 * 2 * (1.0 - purity) ^ 2
+			width = 1 + 359 * 2 * (1.0 - purity)
 		else
 			width = 360
 		end
@@ -202,20 +216,26 @@ begin
 	function _compute_slope_width(h_min, h_max, hue, purity, width)
 		pwidth = purity_width(purity)
 
-		hn = normalize_angle_degrees(hue - h_min)
-		hub_n = normalize_angle_degrees(hue + pwidth - h_min)
-		hlb_n = normalize_angle_degrees(hue - pwidth - h_min)
-		hnm = normalize_angle_degrees(h_max - h_min)
+
+		hn = hue - h_min
+		hub_n = hue + pwidth - h_min
+		hlb_n = hue - pwidth - h_min
+		hnm = h_max - h_min
+
+		println("hn=$hn, hub_n=$hub_n, hlb_n=$hlb_n, hnm=$hnm")
 
 		if 0 < hub_n < hnm
 			# Right point of the purity activation triangle is within bound
 			swidth = hub_n
+			println("swidth (hub) = $swidth")
 		elseif 0 < hlb_n < hnm
 			# Left point of the triangle is in our bounds
-			swidth = hnm - hlb_n
+			swidth = abs(hnm - hlb_n)
+			println("swidth (hlb) = $swidth")
 		else 
 			swidth = width
 		end
+		return swidth
 	end
 
 	function _compute_response_between(h_min, h_max, hue, purity)
@@ -226,7 +246,8 @@ begin
 			r_min, r_max = r_max, r_min
 		end
 
-		width = normalize_angle_degrees(h_max - h_min)
+		width = abs(h_max - h_min)
+		println("Width=$width, purity=$purity, h_max=$h_max, h_min=$h_min")
 		swidth = _compute_slope_width(h_min, h_max, hue, purity, width)
 		if swidth != width
 			println("Slope width != width: ", swidth, ", ", width)
@@ -239,8 +260,8 @@ begin
 	end
 
 	function compute_response_between(h_min, h_max, hue, purity)
-		hn = normalize_angle_degrees(hue - h_min)
-		hmn = normalize_angle_degrees(h_max - h_min)
+		hn = normalize_angle_degrees_360(hue - h_min)
+		hmn = normalize_angle_degrees_360(h_max - h_min)
 		if 0 < hn < hmn
 			out = _compute_response_between(h_min, hue, hue, purity)
 			out += _compute_response_between(hue, h_max, hue, purity)
@@ -277,11 +298,26 @@ begin
 
 	# https://photo.stackexchange.com/questions/60707/how-to-read-a-film-color-response-chart
 
-	cell = Cell(36, 72, 0:0.001:1)
-	xs1, ys1 = compute_activations(cell, 40, 0.9999)
-	println("Total area: ", sum(ys1),", ", compute_summed_activation(cell, 40, 0.9999))
-	plot(xs1, ys1)
+	# cell = Cell(36, 72, 0:0.001:1)
+	# xs1, ys1 = compute_activations(cell, 40, 0.9999)
+	# println("Total area: ", sum(ys1),", ", compute_summed_activation(cell, 40, 0.9999))
+	# plot(xs1, ys1)
 end
+
+# ╔═╡ fff2c521-07c1-4c07-89d0-6bcdacca1e05
+begin	
+
+		
+	println("Response = $(compute_response_between(-179, 179, 1, 0.9))")
+	
+	println("Response = $(compute_response_between(-179, 179, 1, 0.70))")
+	
+	ps = 0:.01:1
+	acts = compute_response_between.(-179, 179, 1, ps)
+	plot(ps, acts)
+
+
+end 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1465,5 +1501,6 @@ version = "1.13.0+0"
 # ╠═b33d28e5-718c-434d-ac73-cec3d2e1b742
 # ╠═12f492c1-b93d-4cbb-8bce-06dcf4b5c1c6
 # ╠═a49a4768-6022-4487-94e6-fcc41ba23739
+# ╠═fff2c521-07c1-4c07-89d0-6bcdacca1e05
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

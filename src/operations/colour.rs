@@ -1,7 +1,7 @@
 
 use num_traits::float::FloatConst;
 use crate::definitions::Lut3D;
-use crate::operations::tone_mapping::{to_float, to_uint_and_clip, HdCurveSettings};
+use crate::operations::tone_mapping::{HdCurveSettings};
 
 pub struct SensitiveLayer<'a> {
     // Lowest hue at which there's some response
@@ -57,17 +57,14 @@ pub fn apply_to_lut(layers: &Vec<SensitiveLayer>, lut: Lut3D) -> Lut3D {
         let mut go: f64 = 0.0;
         let mut bo: f64 = 0.0;
 
-        let rf: f64 = to_float(r);
-        let gf: f64 = to_float(g);
-        let bf: f64 = to_float(b);
 
         for layer in layers {
-            let layer_rgb_out = layer.compute_rgb_output(rf, gf, bf);
+            let layer_rgb_out = layer.compute_rgb_output(r, g, b);
             ro += layer_rgb_out[0];
             go += layer_rgb_out[1];
             bo += layer_rgb_out[2];
         }
-        (to_uint_and_clip(ro), to_uint_and_clip(go), to_uint_and_clip(bo))
+        (ro, go, bo)
     })
 }
 
@@ -82,6 +79,11 @@ pub fn apply_to_lut(layers: &Vec<SensitiveLayer>, lut: Lut3D) -> Lut3D {
 fn normalize(angle: f64) -> f64 {
     (angle + 360.0 + 180.0) % 360.0 - 180.0
 }
+
+fn normalize_360(angle: f64) -> f64 {
+    (angle + 360.0) % 360.0
+}
+
 
 fn compute_value_hue_and_purity(r: f64, g: f64, b: f64) -> (f64, f64, f64) {
     let yc: f64 = f64::sin(2.0 * f64::PI() / 3.0);
@@ -120,6 +122,8 @@ fn compute_value_hue_and_purity(r: f64, g: f64, b: f64) -> (f64, f64, f64) {
 fn width_at_purity(purity: f64) -> f64 {
     if purity > 0.5 {
         1.0 + 359.0 * 2.0 * (1.0 - purity)//.powi(2)
+
+        // 30.0 + 330.0 * 2.0 * (1.0 - purity)//.powi(2)
     } else {
         360.0
     }
@@ -155,9 +159,9 @@ fn response_at(hue: f64, value: f64, h_center: f64, purity: f64) -> f64 {
 fn slope_width(h_min: f64, h_max: f64, hue: f64, purity: f64, width: f64) -> f64 {
     let pwidth = width_at_purity(purity);
 
-    let h_upper_n = normalize(hue + pwidth - h_min);
-    let h_lower_n = normalize(hue - pwidth - h_min);
-    let h_max_n = normalize(h_max - h_min);
+    let h_upper_n = normalize_360(hue + pwidth - h_min);
+    let h_lower_n = normalize_360(hue - pwidth - h_min);
+    let h_max_n = normalize_360(h_max - h_min);
 
     if 0.0 < h_upper_n && h_upper_n < h_max_n {
         // Right point of the purity activation triangle is within bound
@@ -177,7 +181,7 @@ fn compute_response_between_inner(h_min: f64, h_max: f64, value: f64,  hue: f64,
         (r_min, r_max) = (r_max, r_min);
     }
 
-    let width = normalize(h_max - h_min).abs();
+    let width = normalize_360(h_max - h_min).abs();
     let swidth = slope_width(h_min, h_max, hue, purity, width);
 
     // Compute and return the area as sum of base area and slope area
@@ -285,6 +289,55 @@ mod tests {
         let layer_b = SensitiveLayer{
             hue_min: 210.0,
             hue_max: 270.0,
+            sensitivity: vec![1.0],
+            output_colour: [0.0, 0.0, 1.0],
+            density_multiplier: 1.0,
+            response_curve: &curve,
+        };
+
+        assert_channel_more_than(&layer_r, 1.0, 1.0, 1.0, 0.8, 0);
+        assert_channel_more_than(&layer_r, 1.0, 0.0, 0.0, 0.8, 0);
+
+        assert_channel_more_than(&layer_g, 1.0, 1.0, 1.0, 0.8, 1);
+        assert_channel_more_than(&layer_g, 0.0, 1.0, 0.0, 0.8, 1);
+
+        assert_channel_more_than(&layer_b, 1.0, 1.0, 1.0, 0.8, 2);
+        assert_channel_more_than(&layer_b, 0.0, 0.0, 1.0, 0.8, 2);
+    }
+
+    #[test]
+    fn test_rgb_layer_consistency() {
+        let curve = HdCurveSettings{
+            contrast: 4.38,
+            exposure_bias: 0.38,
+            toe: 3.0,
+            shoulder: 0.72,
+            pivot: Some(1.0),
+        };
+
+
+        // Cover the RGB spectrum
+        let layer_r = SensitiveLayer{
+            hue_min: -60.0,
+            hue_max: 60.0,
+            sensitivity: vec![1.0],
+            output_colour: [1.0, 0.0, 0.0],
+            density_multiplier: 1.0,
+            response_curve: &curve,
+        };
+
+        let layer_g = SensitiveLayer{
+            hue_min: 60.0,
+            hue_max: 180.0,
+            sensitivity: vec![1.0],
+            output_colour: [0.0, 1.0, 0.0],
+            density_multiplier: 1.0,
+            response_curve: &curve,
+        };
+
+        let layer_b = SensitiveLayer{
+            hue_min: 180.0,
+            hue_max: 300.0,
             sensitivity: vec![1.0],
             output_colour: [0.0, 0.0, 1.0],
             density_multiplier: 1.0,
